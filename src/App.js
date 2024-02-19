@@ -22,13 +22,24 @@ export default function App() {
     setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
   }
 
+  //handle update items from the state
+  function handleUpdateItem(id) {
+    setItems((items) =>
+      items.map((item) =>
+        item.id === id ? { ...item, packed: !item.packed } : item
+      )
+    );
+  }
+
   //render child components inside parent
   return (
     <div className="app">
       <Logo />
       <Form onAddItems={handleAddItems} />
-      <PackingList items={items} onRemoveItem={handleRemoveItem} />
-      <Stats />
+      <PackingList items={items} 
+      onRemoveItem={handleRemoveItem} 
+      onUpdateItem={handleUpdateItem}/>
+      <Stats items={items}/>
     </div>
   );
 }
@@ -85,24 +96,30 @@ function Form({onAddItems}) {
 }
 
 //child component PackingList
-function PackingList({items, onRemoveItem}) {
+function PackingList({items, onRemoveItem, onUpdateItem}) {
   return (
     <div className="list">
       <ul>
         {items.map((item) => (
-          <Item item={item} key={item.id} onRemoveItem={onRemoveItem}/>
+          <Item item={item} 
+          key={item.id} 
+          onRemoveItem={onRemoveItem}
+          onUpdateItem={onUpdateItem}/>
         ))}
       </ul>
     </div>
   );
 }
 
-function Item({item, onRemoveItem}) {
+function Item({item, onRemoveItem, onUpdateItem}) {
   const handleRemoveClick = () => {
     onRemoveItem(item.id);
   };
   return (
     <li>
+      <input type="checkbox"
+      value={item.packed}
+      onChange={() => onUpdateItem(item.id)}/>
       {/* ternary operator to check simple condition */}
       {/* if item.packed === true then apply this style textDecoration: "line-through" else don't do anything*/}
       <span style={item.packed ? {textDecoration: "line-through" } : {}}>
@@ -114,11 +131,28 @@ function Item({item, onRemoveItem}) {
 }
 
 //child component Stats
-function Stats() {
+function Stats({items}) {
+  //jika tidak ada item pada array
+  if (!items.length)
+  return (
+      <p className="stats">
+      <em>
+        Mulai Tambahkan Barang Bawaan Anda 😊
+      </em>
+      </p>
+  );
+
+  const numItems = items.length;
+  const numPacked = items.filter((item) => item.packed).length;
+  const percentage = Math.round((numPacked / numItems) * 100);
+
   return (
     <footer className="stats">
       <em>
-        Kamu punya 0 barang di daftar, dan sudah packing 0 barang (0%){" "}
+        {percentage === 100
+        ? "Kamu siap berangkat ✈️"
+        : `🏢🏢 Kamu punya ${numItems} barang di daftar, dan sudah packing ${numPacked}
+        barang (${percentage}%)`}
       </em>
     </footer>
   );
